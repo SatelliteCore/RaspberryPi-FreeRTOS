@@ -4,8 +4,44 @@
 #include "Drivers/interrupts.h"
 #include "Drivers/gpio.h"
 
-void task1(void *pParam) {
+#define UNUSED(v) (void)(v)
 
+void dot(void) {
+  SetGpio(16, 0);
+  vTaskDelay(200);
+  SetGpio(16, 1);
+  vTaskDelay(200);
+}
+
+void dash(void) {
+  SetGpio(16, 0);
+  vTaskDelay(800);
+  SetGpio(16, 1);
+  vTaskDelay(200);
+}
+
+void sos(void *pParam) {
+  UNUSED(pParam);
+
+  for (;;) {
+    dot();
+    dot();
+    dot();
+
+    dash();
+    dash();
+    dash();
+
+    dot();
+    dot();
+    dot();
+
+    vTaskDelay(1600);
+  }
+}
+
+void task1(void *pParam) {
+  UNUSED(pParam);
 	int i = 0;
 	while(1) {
 		i++;
@@ -15,6 +51,7 @@ void task1(void *pParam) {
 }
 
 void task2(void *pParam) {
+  UNUSED(pParam);
 
 	int i = 0;
 	while(1) {
@@ -32,15 +69,16 @@ void task2(void *pParam) {
  *	-- Absolutely nothing wrong with this being called main(), just it doesn't have
  *	-- the same prototype as you'd see in a linux program.
  **/
-void main(void) {
+int main(void) {
 
 	DisableInterrupts();
 	InitInterruptController();
 
 	SetGpioFunction(16, 1);			// RDY led
 
-	xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
-	xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
+	xTaskCreate(sos, (signed char*)"SOS", 128, NULL, 0, NULL);
+	//xTaskCreate(task1, (signed char*)"LED_0", 128, NULL, 0, NULL);
+	//xTaskCreate(task2, (signed char*)"LED_1", 128, NULL, 0, NULL);
 
 	vTaskStartScheduler();
 
