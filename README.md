@@ -1,6 +1,6 @@
 # FreeRTOS Ported to Raspberry Pi
 
-This provides a very basic port of FreeRTOS to Raspberry pi.
+This provides a very basic port of FreeRTOS to Raspberry pi.  Note: this is being modified for experiments.  Instead of the instructions below, see the wiki here: https://github.com/smolt/RaspberryPi-FreeRTOS/wiki
 
 ## Howto Build
 
