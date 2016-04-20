@@ -150,7 +150,7 @@ int main(void) {
 	 *	We should never get here, but just in case something goes wrong,
 	 *	we'll place the CPU into a safe loop.
 	 */
-	while(1) {
+	while(2) {
 		;
 	}
 }
