@@ -33,8 +33,11 @@ typedef struct {
 	//Ignoring the reserved and test bytes
 } BCM2835_GPIO_REGS;
 
+#if RPI == 1
 volatile BCM2835_GPIO_REGS * const pRegs = (BCM2835_GPIO_REGS *) (0x20200000);
-
+#else
+volatile BCM2835_GPIO_REGS * const pRegs = (BCM2835_GPIO_REGS *) (0x3f200000);
+#endif
 
 void SetGpioFunction(unsigned int pinNum, unsigned int funcNum) {
 
