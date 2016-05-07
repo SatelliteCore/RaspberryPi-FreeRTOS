@@ -7,8 +7,10 @@
 
 #if RPI == 1
 #define BCM2835_BASE_INTC			(0x2000B200)
-#else
+#elif RPI == 2 || RPI == 3
 #define BCM2835_BASE_INTC			(0x3f00B200)
+#else
+#error Unknown RPI model or RPI not defined (e.g -DRPI=3 option)
 #endif
 
 #define BCM2835_INTC_IRQ_BASIC		(BCM2835_BASE_INTC + 0x00)
