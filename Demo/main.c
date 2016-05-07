@@ -4,6 +4,7 @@
 
 #include "Drivers/interrupts.h"
 #include "Drivers/gpio.h"
+#include "Drivers/led.h"
 
 enum DemoType {
   MorsecodeDemo,
@@ -17,63 +18,18 @@ enum DemoType demoType = SosDemo;
 
 #define UNUSED(v) (void)(v)
 
-#if RPI == 3
-
-static volatile unsigned int *pLed;
-
-void ledInit(void) {
-  // TODO: remove static?
-  static unsigned int request[7] __attribute__((aligned(16))) = {
-    0x1c, 0, 0x00040010, 4, 0, 0, 0
-  };
-
-  volatile unsigned int *pBal = (unsigned int *)0x3f00b880;
-
-  while (pBal[6] & 0x80000000) {}
-  pBal[8] = (unsigned int)(request + 2);
-
-  while (pBal[6] & 0x40000000) {}
-  pLed = (unsigned int *)(request[5] & ~0xc0000000);
-}
-
-void ledOn(void) {
-  *pLed += 0x00010000;
-}
-
-void ledOff(void) {
-  *pLed += 0x00000001;
-}
-
-#elif RPI == 2 || RPI == 1
-
-// Pi 1 activity LED is GPIO 16, Pi 2 is GPIO 47
-#define LED_GPIO (RPI == 1 ? 16 : 47)
-
-void ledInit() {
-  SetGpioFunction(LED_GPIO, 1);	 // RDY led
-}
-
-void ledOn() {
-  SetGpio(LED_GPIO, 0);
-}
-void ledOff() {
-  SetGpio(LED_GPIO, 1);
-}
-#else
-#error Unknown RPI model
-#endif
 
 void dot(void) {
-  ledOn();
+  LedOn();
   vTaskDelay(200);
-  ledOff();
+  LedOff();
   vTaskDelay(200);
 }
 
 void dash(void) {
-  ledOn();
+  LedOn();
   vTaskDelay(800);
-  ledOff();
+  LedOff();
   vTaskDelay(200);
 }
 
@@ -144,7 +100,7 @@ void task1(void *pParam) {
 	int i = 0;
 	while(1) {
 		i++;
-		ledOff();
+		LedOff();
 		vTaskDelay(200);
 	}
 }
@@ -156,7 +112,7 @@ void task2(void *pParam) {
 	while(1) {
 		i++;
 		vTaskDelay(100);
-		ledOn();
+		LedOn();
 		vTaskDelay(100);
 	}
 }
@@ -176,18 +132,9 @@ void delay(unsigned int ms)
  *	-- the same prototype as you'd see in a linux program.
  **/
 int main(void) {
-	ledInit();
-	ledOn();
-#if 0
-	for (;;) {
-	  delay(500);
-	  ledOff();
-	  delay(500);
-	  ledOn();
-	}
-#endif
 	DisableInterrupts();
 	InitInterruptController();
+	LedInit();
 
 	switch (demoType) {
 	case MorsecodeDemo:
