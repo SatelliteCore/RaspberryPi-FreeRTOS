@@ -35,6 +35,7 @@ irq_handler:        .word vFreeRTOS_ISR
 fiq_handler:        .word fiq
 
 reset:
+#if RPI == 3
     ;@ b skip
     // leave HYP mode?
     mrs r0,cpsr
@@ -45,13 +46,15 @@ reset:
     msr ELR_hyp,r0
     eret
 skip:
-
+#endif
 	;@	In the reset handler, we need to copy our interrupt vector table to 0x0000, its currently at 0x8000
 
 	mov r0,#0x8000								;@ Store the source pointer
-    //mov r1,#0x0000								;@ Store the destination pointer.
-    // get vector base addr in r1 (TODO: is this all pi?)
-    mrc p15, 0, r1, c12, c0, 0 ;@ get vbar
+    mov r1,#0x0000								;@ Store the destination pointer.
+
+    // TODO: does this wrk for all Pi instead of above?
+    // get vector base addr in r1
+    //mrc p15, 0, r1, c12, c0, 0 ;@ get vbar
 
 	;@	Here we copy the branching instructions
     ldmia r0!,{r2,r3,r4,r5,r6,r7,r8,r9}			;@ Load multiple values from indexed address. 		; Auto-increment R0
@@ -61,6 +64,7 @@ skip:
     ldmia r0!,{r2,r3,r4,r5,r6,r7,r8,r9}			;@ Load from 4*n of regs (8) as R0 is now incremented.
     stmia r1!,{r2,r3,r4,r5,r6,r7,r8,r9}			;@ Store this extra set of data.
 
+#if RPI == 3
     // clean data cache line (do we need?)
     mov r12,#0
     mcr p15, 0, r12, c7, c10, 1
@@ -82,6 +86,7 @@ skip:
     bic r2,#0x1000
     bic r2,#0x0004
     mcr p15,0,r2,c1,c0,0
+#endif
 
 	;@	Set up the various STACK pointers for different CPU modes
     ;@ (PSR_IRQ_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
@@ -117,12 +122,14 @@ zero_loop:
 	b main									;@ We're ready?? Lets start main execution!
 	.section .text
 
+#if RPI == 3
 smc:
     // leave secure mode
     mrc p15, 0, r1, c1, c1, 0
     bic r1, r1, #1
     mcr p15, 0, r1, c1, c1, 0
     movs    pc, lr
+#endif
 
 undefined_instruction:
 	b undefined_instruction
