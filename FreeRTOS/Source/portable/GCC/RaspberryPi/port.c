@@ -18,8 +18,10 @@
 /* Constants required to setup the VIC for the tick ISR. */
 #if RPI == 1
 #define portTIMER_BASE                    		( (unsigned long ) 0x2000B400 )
-#else
+#elif RPI == 2 || RPI == 3
 #define portTIMER_BASE                    		( (unsigned long ) 0x3f00B400 )
+#else
+#error Unknown RPI model or RPI not defined (e.g -DRPI=3 option)
 #endif
 typedef struct _BCM2835_TIMER_REGS {
 	unsigned long LOD;
