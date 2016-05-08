@@ -26,32 +26,43 @@ void LedOff() {
 #elif RPI == 3
 
 #include <stdbool.h>
+#include <stdint.h>
 
-// Will hold address of activity LED, set by LedInit()
-static volatile unsigned int *pLed;
-
-// current state of led
-static bool on = false;
-
-
-// TODO: look in linux kernel here for why this works
+// This is based on linux kernel, see following:
 //
 // https://github.com/raspberrypi/linux/blob/02ce9572cc77c65f49086bbc4281233bd3fa48b7/drivers/gpio/gpio-bcm-virt.c
 
-void LedInit(void) {
-  // Get access to LED.
-  //
-  // Converted from undocumented asm code, documentation below is a
-  // guess.  Use a mailbox to ask GPU for access to LED, returning an
-  // address.
+// Activity LED is controlled by GPU.  GPU appears to watch these counters
+// which we can write to.
+struct LedCtrl {
+    uint16_t disableCount;
+    uint16_t enableCount;
+};
 
-  // Request message (TODO: find out what fields mean)
-  unsigned int request[7] __attribute__((aligned(16))) = {
-    0x1c, 0, 0x00040010, 4, 0, 0, 0
+// Address of control for activity LED, set by LedInit()
+static volatile struct LedCtrl *pLedCtrl;
+
+// Current state of LED
+static bool on = false;
+
+
+void LedInit(void) {
+  // Get access to LED controlled by GPU.
+  //
+  // Converted from undocumented asm code, documentation below is a rough.
+  // Use a mailbox to ask GPU for access to LED, returning an address.
+
+  // Request message (TODO: document what fields mean)
+  uint32_t request[7] __attribute__((aligned(16))) = {
+    0x1c,
+    0,
+    0x00040010,   // RPI_FIRMWARE_FRAMEBUFFER_GET_GPIOVIRTBUF
+    4,            // size of result (32-bit address)
+    0, 0, 0
   };
 
-  // Mailbox address?
-  volatile unsigned int *pBal = (unsigned int *)0x3f00b880;
+  // Mailbox address
+  volatile uint32_t *pBal = (uint32_t *)0x3f00b880;
 
   // Wait until can make a request - GPU will set bit when available
   while (pBal[6] & 0x80000000) {
@@ -59,7 +70,7 @@ void LedInit(void) {
   }
 
   // Put request in mailbox
-  pBal[8] = (unsigned int)(request + 2);
+  pBal[8] = (uint32_t)(request + 2);
 
   // Wait for reply from GPU
   while (pBal[6] & 0x40000000) {
@@ -67,14 +78,14 @@ void LedInit(void) {
   }
 
   // got reply - save address of led, masking off the top 2 bits.
-  pLed = (unsigned int *)(request[5] & ~0xc0000000);
+  pLedCtrl = (struct LedCtrl *)(request[5] & ~0xc0000000);
 }
 
 void LedOn(void) {
   // Converted from undocumented asm code to turn LED on
   if (!on) {
     on = true;
-    *pLed += 0x00010000;
+    ++pLedCtrl->enableCount;
   }
 }
 
@@ -82,7 +93,7 @@ void LedOff(void) {
   // Converted from undocumented asm code to turn LED off
   if (on) {
     on = false;
-    *pLed += 0x00000001;
+    ++pLedCtrl->disableCount;
   }
 }
 
