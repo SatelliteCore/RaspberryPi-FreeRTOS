@@ -5,7 +5,14 @@
 
 #define BCM2835_INTC_TOTAL_IRQ		64 + 8
 
+#if RPI == 1
 #define BCM2835_BASE_INTC			(0x2000B200)
+#elif RPI == 2 || RPI == 3
+#define BCM2835_BASE_INTC			(0x3f00B200)
+#else
+#error Unknown RPI model or RPI not defined (e.g -DRPI=3 option)
+#endif
+
 #define BCM2835_INTC_IRQ_BASIC		(BCM2835_BASE_INTC + 0x00)
 #define BCM2835_IRQ_PENDING1		(BCM2835_BASE_INTC + 0x04)
 #define BCM2835_IRQ_PENDING2		(BCM2835_BASE_INTC + 0x08)

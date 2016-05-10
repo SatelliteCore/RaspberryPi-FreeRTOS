@@ -4,6 +4,7 @@
 
 #include "Drivers/interrupts.h"
 #include "Drivers/gpio.h"
+#include "Drivers/led.h"
 
 enum DemoType {
   MorsecodeDemo,
@@ -12,22 +13,23 @@ enum DemoType {
 };
 
 // Pick demo type to run
-enum DemoType demoType = MorsecodeDemo;
-
+//enum DemoType demoType = MorsecodeDemo;
+enum DemoType demoType = SosDemo;
 
 #define UNUSED(v) (void)(v)
 
+
 void dot(void) {
-  SetGpio(16, 0);
+  LedOn();
   vTaskDelay(200);
-  SetGpio(16, 1);
+  LedOff();
   vTaskDelay(200);
 }
 
 void dash(void) {
-  SetGpio(16, 0);
+  LedOn();
   vTaskDelay(800);
-  SetGpio(16, 1);
+  LedOff();
   vTaskDelay(200);
 }
 
@@ -98,7 +100,7 @@ void task1(void *pParam) {
 	int i = 0;
 	while(1) {
 		i++;
-		SetGpio(16, 1);
+		LedOff();
 		vTaskDelay(200);
 	}
 }
@@ -110,11 +112,18 @@ void task2(void *pParam) {
 	while(1) {
 		i++;
 		vTaskDelay(100);
-		SetGpio(16, 0);
+		LedOn();
 		vTaskDelay(100);
 	}
 }
 
+volatile unsigned int *pHtr = (unsigned int *)0x3f003004;
+
+void delay(unsigned int ms)
+{
+  unsigned int t0 = *pHtr;
+  while (*pHtr - t0 < ms*1000) {}
+}
 
 /**
  *	This is the systems main entry, some call it a boot thread.
@@ -123,11 +132,9 @@ void task2(void *pParam) {
  *	-- the same prototype as you'd see in a linux program.
  **/
 int main(void) {
-
 	DisableInterrupts();
 	InitInterruptController();
-
-	SetGpioFunction(16, 1);			// RDY led
+	LedInit();
 
 	switch (demoType) {
 	case MorsecodeDemo:

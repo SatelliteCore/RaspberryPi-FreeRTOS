@@ -33,8 +33,13 @@ typedef struct {
 	//Ignoring the reserved and test bytes
 } BCM2835_GPIO_REGS;
 
+#if RPI == 1
 volatile BCM2835_GPIO_REGS * const pRegs = (BCM2835_GPIO_REGS *) (0x20200000);
-
+#elif RPI == 2 || RPI == 3
+volatile BCM2835_GPIO_REGS * const pRegs = (BCM2835_GPIO_REGS *) (0x3f200000);
+#else
+#error Unknown RPI model or RPI not defined (e.g -DRPI=3 option)
+#endif
 
 void SetGpioFunction(unsigned int pinNum, unsigned int funcNum) {
 
