@@ -105,6 +105,7 @@ int RegisterInterrupt(int nIRQ, FN_INTERRUPT_HANDLER pfnHandler, void *pParam) {
 	if(nIRQ<0 || nIRQ>71)
 		return -1;
 
+        // TODO: these should allow nested pairs
 	irqDisable();
 	{
 		g_VectorTable[nIRQ].pfnHandler = pfnHandler;
