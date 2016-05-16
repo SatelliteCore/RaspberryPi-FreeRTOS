@@ -1,0 +1,14 @@
+# stuff built
+/build
+*.elf
+*.img
+*.list
+*.map
+*.syms
+*.pyc
+
+# editor/IDE specific
+# emacs
+*~
+TAGS
+
