@@ -17,6 +17,7 @@ enum DemoType {
 //enum DemoType demoType = MorsecodeDemo;
 enum DemoType demoType = ReadWriteDemo;
 const int kPinWrite = 16;
+const int kPinRead = 20;
 
 #define UNUSED(v) (void)(v)
 
@@ -122,6 +123,7 @@ void task2(void *pParam) {
 void readwrite(void *pParam) {
     UNUSED(pParam);
     SetGpioFunction(kPinWrite, GPIO_OUT); //Init GPIO output (for specific pin)
+    SetGpioFunction(kPinRead, GPIO_IN); //Init GPIO input (for specific pin)
 
     while(1) {
         SetGpio(kPinWrite, 1);
