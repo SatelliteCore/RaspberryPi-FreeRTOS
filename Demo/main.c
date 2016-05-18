@@ -120,18 +120,31 @@ void task2(void *pParam) {
     }
 }
 
-void readwrite(void *pParam) {
+void write(void *pParam) {
     UNUSED(pParam);
     SetGpioFunction(kPinWrite, GPIO_OUT); //Init GPIO output (for specific pin)
-    SetGpioFunction(kPinRead, GPIO_IN); //Init GPIO input (for specific pin)
 
     while(1) {
         SetGpio(kPinWrite, 1);
-        LedOn();
         vTaskDelay(1000);
         SetGpio(kPinWrite, 0);
-        LedOff();
         vTaskDelay(1000);
+    }
+}
+
+void read(void *pParam) {
+    UNUSED(pParam);
+    SetGpioFunction(kPinRead, GPIO_IN);
+    int readValue = 0;
+    
+    while(1) {
+        readValue = ReadGpio(kPinRead);
+        if(readValue != 0) {
+            LedOn();
+        }
+        else {
+            LedOff();
+        }
     }
 }
 
@@ -168,8 +181,9 @@ int main(void) {
             xTaskCreate(task2, (signed char*)"LED_1", 128, NULL, 0, NULL);
             break;
         case ReadWriteDemo:
-            xTaskCreate(readwrite, (signed char*)"ReadWrite", 128, NULL, 0, NULL);
-            break;
+            xTaskCreate(write, (signed char*)"Write", 128, NULL, 0, NULL);
+            xTaskCreate(read,  (signed char*)"Read",  128, NULL, 0, NULL);
+	    break;
     }
 
     vTaskStartScheduler();
