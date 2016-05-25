@@ -138,6 +138,7 @@ void read(void *pParam) {
     int readValue = 0;
     
     while(1) {
+        vTaskDelay(10);
         readValue = ReadGpio(kPinRead);
         if(readValue != 0) {
             LedOn();
